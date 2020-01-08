@@ -1,0 +1,138 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Amazon Elastic File System - Creates a file system with data
+
+Metadata:
+  Authors:
+    Description: Andy Schuetz
+  License:
+    Description: 'Copyright 2018 Amazon.com, Inc. and its affiliates. All Rights Reserved.
+      SPDX-License-Identifier: MIT-0'
+
+Parameters:
+
+  VPC:
+    Description: Choose which VPC this ECS cluster should be deployed to
+    Type: AWS::EC2::VPC::Id
+
+  Subnets:
+    Description: Choose which subnets this elastic file system should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroup:
+    Description: Select the Security Group to use for the elastic file system and ECS cluster hosts
+    Type: AWS::EC2::SecurityGroup::Id
+
+  EncryptionState:
+    AllowedValues:
+      - Encrypted
+      - Unencrypted
+    Default: Encrypted
+    Description: Create an encrypted or unencrypted file system.
+    Type: String
+
+  Cmk:
+    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system
+    Type: String
+
+  DeletionPolicy:
+    AllowedValues:
+      - Delete
+      - Retain
+    Default: Delete
+    Description: Retain or delete the Amazon EFS resources after CloudFormation stack deletion.
+    Type: String
+
+  PerformanceMode:
+    AllowedValues:
+      - generalPurpose
+      - maxIO
+    Default: generalPurpose
+    Description: Select the performance mode of the file system.
+    Type: String
+
+Conditions:
+  UseAWS-ManagedCMK:
+    !Equals [ '', !Ref Cmk ]
+  Delete:
+    !Equals [ !Ref DeletionPolicy, Delete ]
+  Retain:
+    !Equals [ !Ref DeletionPolicy, Retain ]
+
+Mappings:
+  EncrpytionBoolean:
+    Encrypted:
+      Boolean: true
+    Unencrypted:
+      Boolean: false
+
+Resources:
+  ElasticFileSystemRetain:
+    Type: AWS::EFS::FileSystem
+    Condition: Retain
+    DeletionPolicy: Retain
+    Properties:
+      Encrypted: !FindInMap [ EncrpytionBoolean, !Ref EncryptionState, Boolean ]
+      KmsKeyId:
+        !If [ UseAWS-ManagedCMK, !Ref 'AWS::NoValue', !Ref Cmk ]
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+      PerformanceMode: !Ref PerformanceMode
+  ElasticFileSystemDelete:
+    Type: AWS::EFS::FileSystem
+    Condition: Delete
+    DeletionPolicy: Delete
+    Properties:
+      Encrypted: !FindInMap [ EncrpytionBoolean, !Ref EncryptionState, Boolean ]
+      KmsKeyId:
+        !If [ UseAWS-ManagedCMK, !Ref 'AWS::NoValue', !Ref Cmk ]
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+      PerformanceMode: !Ref PerformanceMode
+  ElasticFileSystemMountTarget0Retain:
+    Condition: Retain
+    DeletionPolicy: Retain
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystemRetain
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Select [ 0, !Ref Subnets ]
+  ElasticFileSystemMountTarget0Delete:
+    Condition: Delete
+    DeletionPolicy: Delete
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystemDelete
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Select [ 0, !Ref Subnets ]
+  ElasticFileSystemMountTarget1Retain:
+    Condition: Retain
+    DeletionPolicy: Retain
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystemRetain
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Select [ 1, !Ref Subnets ]
+  ElasticFileSystemMountTarget1Delete:
+    Condition : Delete
+    DeletionPolicy: Delete
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref ElasticFileSystemDelete
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Select [ 1, !Ref Subnets ]
+ 
+Outputs:
+  ElasticFileSystem:
+    Value: !If [ Delete, !Ref ElasticFileSystemDelete, !Ref ElasticFileSystemRetain ]
+  ElasticFileSystemDnsName:
+    Description: DNS name for the Amazon EFS file system.
+    Value: !Join [ '.', [ !If [ Delete, !Ref ElasticFileSystemDelete, !Ref ElasticFileSystemRetain ], 'efs', !Ref 'AWS::Region', 'amazonaws', 'com' ] ]
+ 
