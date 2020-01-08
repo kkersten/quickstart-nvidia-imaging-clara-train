@@ -5,6 +5,8 @@ Description: >
   route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
   and default routes for them in the private subnets.
 
+  It then deploys an EFS to share and persist data across multiple container instances.
+
   It then deploys a highly available ECS cluster using an AutoScaling Group, with 
   ECS hosts distributed across multiple Availability Zones. 
 
@@ -52,7 +54,7 @@ Resources:
         VPC: !GetAtt VPC.Outputs.VPC
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
-        EncryptionState: Unencrypted
+        EncryptionState: Encrypted
         Cmk: !Ref Cmk
         DeletionPolicy: Delete
         PerformanceMode: generalPurpose
