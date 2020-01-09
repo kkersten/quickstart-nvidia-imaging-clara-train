@@ -1,6 +1,6 @@
 # Deploying the NVIDIA Clara Train SDK with Amazon ECS, Amazon EFS, AWS CloudFormation, and an Application Load Balancer
 
-This reference architecture provides a set of YAML templates for deploying the Clara Train SDK as a highly availible service.
+This reference architecture provides a set of YAML templates for deploying the Clara Train SDK as a highly available service.
 
 ## Overview
 
@@ -47,7 +47,7 @@ The templates below are included in this repository and reference architecture:
 | [infrastructure/efs.yaml](infrastructure/efs.yaml) | This template deploys an Elastic File System in each subnet covered by the the ECS autoscaling group. |
 | [infrastructure/load-balancers.yaml](infrastructure/load-balancers.yaml) | This template deploys an ALB to the public subnets, which exposes the various ECS services. It is created in in a separate nested template, so that it can be referenced by all of the other nested templates and so that the various ECS services can register with it. |
 | [infrastructure/ecs-cluster.yaml](infrastructure/ecs-cluster.yaml) | This template deploys an ECS cluster to the private subnets using an Auto Scaling group and installs the AWS SSM agent with related policy requirements. |
-| [services/service.yaml](services/service.yaml) | This template deployes an instance of the Clara Train SDK as an ECS service.|
+| [services/service.yaml](services/service.yaml) | This template deploys an instance of the Clara Train SDK as an ECS service.|
 
 After the CloudFormation templates have been deployed, the [stack outputs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) contain a link to the load-balanced URL for the deployed Clara Train service and the DNS name of the EFS.
 
