@@ -1,7 +1,7 @@
 Description: >
 
   This template deploys a VPC, with a pair of public and private subnets spread 
-  across two Availabilty Zones. It deploys an Internet Gateway, with a default 
+  across two Availability Zones. It deploys an Internet Gateway, with a default 
   route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
   and default routes for them in the private subnets.
 
@@ -186,7 +186,7 @@ Resources:
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
         KeyName: !Ref KeyName
 
-  WebsiteService:
+  ClaraService:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
@@ -206,8 +206,8 @@ Resources:
 
 Outputs:
 
-  WebsiteServiceUrl:
-    Description: The URL endpoint for the website service
+  ClaraServiceUrl:
+    Description: The URL endpoint for the Clara Train service
     Value: !Join ["", [!GetAtt ALB.Outputs.LoadBalancerUrl, "/"]]
 
   ElasticFileSystemDnsName:
