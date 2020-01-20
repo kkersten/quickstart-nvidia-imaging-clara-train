@@ -126,20 +126,6 @@ Resources:
         VPCCIDR: !Ref VPCCIDR
         VPCTenancy: !Ref VPCTenancy
 
-  # SecurityGroups:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: !Sub 
-  #       - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}security-groups-yaml.template
-  #       - QSS3Region: !If 
-  #         - GovCloudCondition
-  #         - s3-us-gov-west-1
-  #         - s3
-  #     Parameters:
-  #       EnvironmentName: !Ref AWS::StackName
-  #       VPC: !GetAtt VPC.Outputs.VPCID
-  #       VPCCIDR: !Ref VPCCIDR
-
   EFS:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -154,7 +140,6 @@ Resources:
         VPC: !GetAtt VPC.Outputs.VPCID
         VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
-        # SecurityGroup: !GetAtt SecurityGroups.Outputs.EFSSecurityGroup
         EncryptionState: Encrypted
         Cmk: !Ref Cmk
         DeletionPolicy: Delete
