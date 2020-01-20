@@ -126,19 +126,19 @@ Resources:
         VPCCIDR: !Ref VPCCIDR
         VPCTenancy: !Ref VPCTenancy
 
-  SecurityGroups:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub 
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}security-groups-yaml.template
-        - QSS3Region: !If 
-          - GovCloudCondition
-          - s3-us-gov-west-1
-          - s3
-      Parameters:
-        EnvironmentName: !Ref AWS::StackName
-        VPC: !GetAtt VPC.Outputs.VPCID
-        VPCCIDR: !Ref VPCCIDR
+  # SecurityGroups:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub 
+  #       - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}security-groups-yaml.template
+  #       - QSS3Region: !If 
+  #         - GovCloudCondition
+  #         - s3-us-gov-west-1
+  #         - s3
+  #     Parameters:
+  #       EnvironmentName: !Ref AWS::StackName
+  #       VPC: !GetAtt VPC.Outputs.VPCID
+  #       VPCCIDR: !Ref VPCCIDR
 
   EFS:
     Type: AWS::CloudFormation::Stack
@@ -150,9 +150,11 @@ Resources:
           - s3-us-gov-west-1
           - s3
       Parameters:
+        EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPCID
+        VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
-        SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+        # SecurityGroup: !GetAtt SecurityGroups.Outputs.EFSSecurityGroup
         EncryptionState: Encrypted
         Cmk: !Ref Cmk
         DeletionPolicy: Delete
@@ -161,12 +163,16 @@ Resources:
   ALB:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-cloudformation/infrastructure/load-balancers.yaml
+      TemplateURL: !Sub
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}load-balancer-yaml.template
+        - QSS3Region: !If 
+          - GovCloudCondition
+          - s3-us-gov-west-1
+          - s3
       Parameters:
         EnvironmentName: !Ref AWS::StackName
         VPC: !GetAtt VPC.Outputs.VPCID
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PublicSubnet1ID, !GetAtt VPC.Outputs.PublicSubnet2ID]]
-        SecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
 
   ECS:
     Type: AWS::CloudFormation::Stack
@@ -182,8 +188,10 @@ Resources:
         InstanceType: p3.2xlarge
         ClusterSize: 1
         VPC: !GetAtt VPC.Outputs.VPCID
-        SecurityGroup: !GetAtt SecurityGroups.Outputs.ECSHostSecurityGroup
+        VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
+        LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
+        EFSSecurityGroup: !GetAtt EFS.Outputs.EFSSecurityGroup
         KeyName: !Ref KeyName
 
   ClaraService:
