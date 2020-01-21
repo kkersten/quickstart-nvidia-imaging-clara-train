@@ -57,7 +57,19 @@ Resources:
       SecurityGroupIngress:
         # Only allow inbound access to ECS from the ELB
         - SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-          IpProtocol: -1
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+        # Ephemeral ports for healthchecks
+        - SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          IpProtocol: tcp
+          FromPort: 32768
+          ToPort: 65535
+        # Access to EFS
         - SourceSecurityGroupId: !Ref EFSSecurityGroup
           IpProtocol: tcp
           FromPort: 2049
