@@ -116,7 +116,7 @@ Resources:
       Conditions:
         - Field: path-pattern
           Values:
-            - !Ref Path
+            - !Join [ '', [!Ref Path, '*']]
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
