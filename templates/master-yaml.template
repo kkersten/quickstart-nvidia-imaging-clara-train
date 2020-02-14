@@ -23,6 +23,7 @@ Parameters:
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   Cmk:
     Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system
+    Default: ""
     Type: String
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
@@ -67,7 +68,7 @@ Parameters:
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
     ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
-    Default: nvidia-clara-resources
+    Default: 'nvidia-clara-resources'
     Description: S3 bucket name for the Quick Start assets. Quick Start bucket name can
       include numbers, lowercase letters, uppercase letters, and hyphens (-). It
       cannot start or end with a hyphen (-).
@@ -75,7 +76,7 @@ Parameters:
   QSS3KeyPrefix:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
     ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), dots (.) and forward slash (/). The prefix should end with a forward slash (/).
-    Default: quickstart/
+    Default: 'quickstart/'
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can
       include numbers, lowercase letters, uppercase letters, hyphens (-), dots
       (.) and forward slash (/) and it should end with a forward slash (/).
@@ -100,6 +101,14 @@ Parameters:
     - p3.8xlarge
     - p3.16xlarge
     - p3dn.24xlarge
+  ClusterSize:
+    Description: How many ECS hosts do you want to initially deploy?
+    Type: String
+    Default: 1
+  DesiredServiceCount:
+    Description: How many instances of this task should we run across our cluster?
+    Type: String
+    Default: 1
 Conditions:
   GovCloudCondition: !Equals 
     - !Ref 'AWS::Region'
@@ -117,7 +126,6 @@ Resources:
           - s3
       Parameters:
         AvailabilityZones: !Join [",", !Ref AvailabilityZones]
-        KeyPairName: !Ref KeyName
         NumberOfAZs: '2'
         PrivateSubnet1ACIDR: !Ref PrivateSubnet1CIDR
         PrivateSubnet2ACIDR: !Ref PrivateSubnet2CIDR
@@ -130,7 +138,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}efs-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/efs-yaml.template
         - QSS3Region: !If 
           - GovCloudCondition
           - s3-us-gov-west-1
@@ -149,7 +157,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}load-balancer-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/load-balancer-yaml.template
         - QSS3Region: !If 
           - GovCloudCondition
           - s3-us-gov-west-1
@@ -163,15 +171,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}ecs-cluster-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/ecs-cluster-yaml.template
         - QSS3Region: !If 
           - GovCloudCondition
           - s3-us-gov-west-1
           - s3
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        InstanceType: p3.2xlarge
-        ClusterSize: 1
+        InstanceType: !Ref ECSHostInstanceType
+        ClusterSize: !Ref ClusterSize
         VPC: !GetAtt VPC.Outputs.VPCID
         VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
@@ -183,7 +191,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}service-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/service-yaml.template
         - QSS3Region: !If 
           - GovCloudCondition
           - s3-us-gov-west-1
@@ -191,7 +199,7 @@ Resources:
       Parameters:
         VPC: !GetAtt VPC.Outputs.VPCID
         Cluster: !GetAtt ECS.Outputs.Cluster
-        DesiredCount: 1
+        DesiredCount: !Ref DesiredServiceCount
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole

@@ -13,7 +13,7 @@ Parameters:
 
   DesiredCount:
     Description: How many instances of this task should we run across our cluster?
-    Type: Number
+    Type: String
     Default: 1
 
   MaxCount:
