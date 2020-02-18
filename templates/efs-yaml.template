@@ -43,6 +43,7 @@ Parameters:
 
   Cmk:
     Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system
+    Default: ''
     Type: String
 
   DeletionPolicy:
@@ -97,7 +98,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       Encrypted: !FindInMap [ EncrpytionBoolean, !Ref EncryptionState, Boolean ]
-      KmsKeyId:
+      KmsKeyId: 
         !If [ UseAWS-ManagedCMK, !Ref 'AWS::NoValue', !Ref Cmk ]
       FileSystemTags:
         - Key: Name

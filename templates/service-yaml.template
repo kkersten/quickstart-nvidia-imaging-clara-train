@@ -12,12 +12,12 @@ Parameters:
     Type: String
 
   DesiredCount:
-    Description: How many instances of this task should we run across our cluster?
-    Type: String
+    Description: Desired number of instances of this task to run across the cluster
+    Type: Number
     Default: 1
 
   MaxCount:
-    Description: Maximum number of instances of this task we can run across our cluster
+    Description: Maximum number of instances of this task to run across the cluster
     Type: Number
     Default: 1
 
@@ -38,6 +38,10 @@ Parameters:
     Description: DNS name for the Amazon EFS file system.
     Type: String
 
+  ContainerImageRegistry: 
+    Description: Location of docker image or repository registry to pull
+    Type: String
+
 Resources:
   Service:
     Type: AWS::ECS::Service
@@ -50,7 +54,7 @@ Resources:
       HealthCheckGracePeriodSeconds: 180
       LoadBalancers:
         - ContainerName: "website-service"
-          ContainerPort: 5000
+          ContainerPort: 80
           TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
@@ -60,12 +64,12 @@ Resources:
       ContainerDefinitions:
         - Name: website-service
           Essential: true
-          Image: 377457852517.dkr.ecr.us-west-2.amazonaws.com/clara-train-sdk-patched:latest
+          Image: !Ref ContainerImageRegistry
           Memory: 24576
           Command: ["start_aas.sh", "--workspace", "/workspace/AIAA", "--engine", "AIAA", "--debug", "1"]
           EntryPoint: ["sh", "-c"]
           PortMappings:
-            - ContainerPort: 5000
+            - ContainerPort: 80
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -76,7 +80,7 @@ Resources:
               SourceVolume: "clara-efs"
           ResourceRequirements:
             - Type: GPU
-              Value: 1
+              Value: "1"
       Volumes:
         - Name: "clara-efs"
           DockerVolumeConfiguration:
@@ -116,7 +120,7 @@ Resources:
       Conditions:
         - Field: path-pattern
           Values:
-            - !Join [ '', [!Ref Path, '*']]
+            - !Join ['', [!Ref Path, '*']]
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
@@ -127,7 +131,7 @@ Resources:
   ServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ecs-service-${AWS::StackName}
+      RoleName: clara-ecs-service-role # !Sub ecs-service-${AWS::StackName}
       Path: /
       AssumeRolePolicyDocument: |
         {
@@ -222,9 +226,9 @@ Resources:
         - Name: ServiceName
           Value: !GetAtt Service.Name
       Statistic: Maximum
-      Period: "60"
-      EvaluationPeriods: "3"
-      Threshold: "90"
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 90.0
       ComparisonOperator: GreaterThanThreshold
       AlarmActions:
         - !Ref ServiceScaleOutPolicy
@@ -242,9 +246,9 @@ Resources:
         - Name: ServiceName
           Value: !GetAtt Service.Name
       Statistic: Maximum
-      Period: "60"
-      EvaluationPeriods: "10"
-      Threshold: "70"
+      Period: 60
+      EvaluationPeriods: 10
+      Threshold: 70.0
       ComparisonOperator: LessThanThreshold
       AlarmActions:
         - !Ref ServiceScaleInPolicy

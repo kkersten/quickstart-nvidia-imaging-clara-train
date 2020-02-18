@@ -5,13 +5,13 @@ Description: >
   route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
   and default routes for them in the private subnets.
 
-  It then deploys an EFS to share and persist data across multiple container instances.
+  It then deploys a bastion host to access private subnets, and an EFS to share
+  and persist data across multiple container instances.
 
   It then deploys a highly available ECS cluster using an AutoScaling Group, with 
   ECS hosts distributed across multiple Availability Zones. 
 
-  Finally, it deploys the Clara Train SDK as an ECS services from containers published in 
-  Amazon EC2 Container Registry (Amazon ECR).
+  Finally, it deploys the Clara Train SDK as an ECS service.
 
   Last Modified: 3rd January 2020
   Author: Name <handle@amazon.com>
@@ -23,7 +23,7 @@ Parameters:
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   Cmk:
     Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system
-    Default: ""
+    Default: ''
     Type: String
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
@@ -76,7 +76,7 @@ Parameters:
   QSS3KeyPrefix:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
     ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), dots (.) and forward slash (/). The prefix should end with a forward slash (/).
-    Default: 'quickstart/'
+    Default: 'quickstart-nvidia-clara/'
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can
       include numbers, lowercase letters, uppercase letters, hyphens (-), dots
       (.) and forward slash (/) and it should end with a forward slash (/).
@@ -105,10 +105,32 @@ Parameters:
     Description: How many ECS hosts do you want to initially deploy?
     Type: String
     Default: 1
+  ContainerImageRegistry: 
+    Description: Location of docker image or repository registry to pull
+    Type: String
+    # TODO: Update this default when NVIDIA publishes V2 container
+    Default: 377457852517.dkr.ecr.us-west-2.amazonaws.com/clara_2.0:latest
   DesiredServiceCount:
     Description: How many instances of this task should we run across our cluster?
     Type: String
     Default: 1
+  SourceCidrIP: 
+    Description: CIDR block from which connections to the load balancer will be accepted
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
+    Default: 0.0.0.0/0
+    Type: String
+  BastionKeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access to Bastion Host
+    ConstraintDescription: Must be the name of an existing EC2 Key Pair
+  BastionAccessCidr:
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 0.0.0.0/0
+    Description: CIDR block from which connections to the bastion host will be accepted
+    Type: String
+
 Conditions:
   GovCloudCondition: !Equals 
     - !Ref 'AWS::Region'
@@ -134,6 +156,25 @@ Resources:
         VPCCIDR: !Ref VPCCIDR
         VPCTenancy: !Ref VPCTenancy
 
+  Bastion:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+    - VPC
+    Properties:
+      TemplateURL: !Sub 
+      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+      - QSS3Region: !If 
+        - GovCloudCondition
+        - s3-us-gov-west-1
+        - s3
+      Parameters:
+        BastionInstanceType: t2.medium
+        KeyPairName: !Ref BastionKeyPairName
+        RemoteAccessCIDR: !Ref BastionAccessCidr
+        PublicSubnet1ID: !GetAtt VPC.Outputs.PublicSubnet1ID
+        PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
+        VPCID: !GetAtt VPC.Outputs.VPCID
+
   EFS:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -153,63 +194,41 @@ Resources:
         DeletionPolicy: Delete
         PerformanceMode: generalPurpose
 
-  ALB:
+  ClaraCluster:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/load-balancer-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/clara-cluster-yaml.template
         - QSS3Region: !If 
           - GovCloudCondition
           - s3-us-gov-west-1
           - s3
       Parameters:
         EnvironmentName: !Ref AWS::StackName
-        VPC: !GetAtt VPC.Outputs.VPCID
-        Subnets: !Join [",", [!GetAtt VPC.Outputs.PublicSubnet1ID, !GetAtt VPC.Outputs.PublicSubnet2ID]]
-
-  ECS:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/ecs-cluster-yaml.template
-        - QSS3Region: !If 
-          - GovCloudCondition
-          - s3-us-gov-west-1
-          - s3
-      Parameters:
-        EnvironmentName: !Ref AWS::StackName
-        InstanceType: !Ref ECSHostInstanceType
-        ClusterSize: !Ref ClusterSize
+        KeyName: !Ref KeyName
         VPC: !GetAtt VPC.Outputs.VPCID
         VPCCIDR: !Ref VPCCIDR
-        Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
-        LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
+        PublicSubnet1ID: !GetAtt VPC.Outputs.PublicSubnet1ID
+        PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
+        PrivateSubnet1AID: !GetAtt VPC.Outputs.PrivateSubnet1AID
+        PrivateSubnet2AID: !GetAtt VPC.Outputs.PrivateSubnet2AID
         EFSSecurityGroup: !GetAtt EFS.Outputs.EFSSecurityGroup
-        KeyName: !Ref KeyName
-
-  ClaraService:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/service-yaml.template
-        - QSS3Region: !If 
-          - GovCloudCondition
-          - s3-us-gov-west-1
-          - s3
-      Parameters:
-        VPC: !GetAtt VPC.Outputs.VPCID
-        Cluster: !GetAtt ECS.Outputs.Cluster
-        DesiredCount: !Ref DesiredServiceCount
-        Listener: !GetAtt ALB.Outputs.Listener
-        Path: /
-        ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
+        InstanceType: !Ref ECSHostInstanceType
+        ClusterSize: !Ref ClusterSize
+        DesiredServiceCount: !Ref DesiredServiceCount
+        ContainerImageRegistry: !Ref ContainerImageRegistry
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
         ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
+        SourceCidrIP: !Ref SourceCidrIP
+        BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
+    DependsOn: EFS
 
 Outputs:
 
   ClaraServiceUrl:
     Description: The URL endpoint for the Clara Train service
-    Value: !Join ["", [!GetAtt ALB.Outputs.LoadBalancerUrl, "/"]]
+    Value: !Join ["", [!GetAtt ClaraCluster.Outputs.ClaraServiceUrl, "/"]]
 
   ElasticFileSystemDnsName:
     Description: DNS name for the Amazon EFS file system.
