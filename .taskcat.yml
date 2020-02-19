@@ -1,0 +1,13 @@
+project:
+  name: quickstart-nvidia-clara
+  regions:
+    - us-west-2
+tests:
+  default:
+    template: ./templates/master-yaml.template
+    parameters: 
+      KeyName: Clara2
+      BastionKeyPairName: Clara2
+      AvailabilityZones: '$[taskcat_getaz_2]'
+      QSS3BucketName: '$[taskcat_autobucket]'
+      
