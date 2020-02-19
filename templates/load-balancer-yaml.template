@@ -47,7 +47,6 @@ Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Ref EnvironmentName
       Subnets: !Ref Subnets
       SecurityGroups:
         - !Ref   LoadBalancerSecurityGroup
@@ -71,10 +70,12 @@ Resources:
   DefaultTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub ${EnvironmentName}-default
       VpcId: !Ref VPC
       Port: 80
       Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
 
 Outputs:
   LoadBalancerSecurityGroup:

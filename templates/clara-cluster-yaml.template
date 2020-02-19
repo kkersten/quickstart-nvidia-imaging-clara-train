@@ -118,7 +118,6 @@ Resources:
         InstanceType: !Ref InstanceType
         ClusterSize: !Ref ClusterSize
         VPC: !Ref VPC
-        VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
         LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
         EFSSecurityGroup: !Ref EFSSecurityGroup

@@ -155,7 +155,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Path: /
-      RoleName: !Sub ${EnvironmentName}-ECSRole-${AWS::Region}
       AssumeRolePolicyDocument: |
         {
             "Statement": [{
@@ -191,6 +190,9 @@ Resources:
                     "Resource": "*"
                 }]
             }
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-ECSRole-${AWS::Region}
 
   ECSInstanceProfile:
     Type: AWS::IAM::InstanceProfile

@@ -131,7 +131,6 @@ Resources:
   ServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: clara-ecs-service-role # !Sub ecs-service-${AWS::StackName}
       Path: /
       AssumeRolePolicyDocument: |
         {
@@ -142,7 +141,7 @@ Resources:
             }]
         }
       Policies:
-        - PolicyName: !Sub ecs-service-${AWS::StackName}
+        - PolicyName: !Sub ecs-service-${AWS::StackName} 
           PolicyDocument:
             {
               "Version": "2012-10-17",
