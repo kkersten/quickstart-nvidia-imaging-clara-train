@@ -108,8 +108,7 @@ Parameters:
   ContainerImageRegistry: 
     Description: Location of docker image or repository registry to pull
     Type: String
-    # TODO: Update this default when NVIDIA publishes V2 container
-    Default: 377457852517.dkr.ecr.us-west-2.amazonaws.com/clara_2.0:latest
+    Default: nvcr.io/nvidia/clara-train-sdk:v2.0
   DesiredServiceCount:
     Description: How many instances of this task should we run across our cluster?
     Type: String
