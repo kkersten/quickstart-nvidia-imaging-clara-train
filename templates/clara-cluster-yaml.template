@@ -35,9 +35,20 @@ Parameters:
   PrivateSubnet2AID:
     Description: ID of the private subnet 2
     Type: AWS::EC2::Subnet::Id
-  EFSSecurityGroup:
-    Description: The Security Group of the EFS that containers can mount
-    Type: AWS::EC2::SecurityGroup::Id
+  # EFSSecurityGroup:
+  #   Description: The Security Group of the EFS that containers can mount
+  #   Type: AWS::EC2::SecurityGroup::Id
+  Cmk:
+    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, will use AWS service key for encryption.
+    Default: ''
+    Type: String
+  PerformanceMode:
+    AllowedValues:
+      - generalPurpose
+      - maxIO
+    Default: generalPurpose
+    Description: Select the performance mode of the EFS file system.
+    Type: String
   InstanceType:
     Description: Instance type for ECS hosts in cluster
     Type: String
@@ -75,9 +86,9 @@ Parameters:
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
     Default: 0.0.0.0/0
     Type: String
-  ElasticFileSystemDnsName:
-    Description: DNS name for the Amazon EFS file system.
-    Type: String
+  # ElasticFileSystemDnsName:
+  #   Description: DNS name for the Amazon EFS file system.
+  #   Type: String
   BastionSecurityGroupID: 
     Description: The Security Group of the bastion host, allowed to connect to private IPs of ECS hosts
     Type: AWS::EC2::SecurityGroup::Id
@@ -86,8 +97,26 @@ Conditions:
   GovCloudCondition: !Equals 
     - !Ref 'AWS::Region'
     - us-gov-west-1
+  GovCloudWestCondition: !Equals [ !Ref 'AWS::Region', us-gov-west-1]
+  GovCloudEastCondition: !Equals [ !Ref 'AWS::Region', us-gov-east-1]
 
 Resources:
+
+  EFS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/efs-yaml.template
+        - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
+      Parameters:
+        EnvironmentName: !Ref AWS::StackName
+        VPC: !Ref VPC
+        VPCCIDR: !Ref VPCCIDR
+        Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
+        EncryptionState: Encrypted
+        Cmk: !Ref Cmk
+        DeletionPolicy: Delete
+        PerformanceMode: !Ref PerformanceMode
 
   ALB:
     Type: AWS::CloudFormation::Stack
@@ -120,7 +149,7 @@ Resources:
         VPC: !Ref VPC
         Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
         LoadBalancerSecurityGroup: !GetAtt ALB.Outputs.LoadBalancerSecurityGroup
-        EFSSecurityGroup: !Ref EFSSecurityGroup
+        EFSSecurityGroup: !GetAtt EFS.Outputs.EFSSecurityGroup
         KeyName: !Ref KeyName
         BastionSecurityGroupID: !Ref BastionSecurityGroupID
 
@@ -140,10 +169,14 @@ Resources:
         Listener: !GetAtt ALB.Outputs.Listener
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
-        ElasticFileSystemDnsName: !Ref ElasticFileSystemDnsName
+        ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
         ContainerImageRegistry: !Ref ContainerImageRegistry
 
 Outputs:
+
+  ElasticFileSystemDnsName:
+    Description: DNS name for the Amazon EFS file system.
+    Value: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
 
   ClaraServiceUrl:
     Description: The URL endpoint for the Clara Train service
