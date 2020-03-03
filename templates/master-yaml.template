@@ -124,9 +124,6 @@ Mappings:
       Uri: nvcr.io/nvidia/clara-train-sdk:v2.0
 
 Conditions:
-  GovCloudCondition: !Equals 
-    - !Ref 'AWS::Region'
-    - us-gov-west-1
   GovCloudWestCondition: !Equals [ !Ref 'AWS::Region', us-gov-west-1]
   GovCloudEastCondition: !Equals [ !Ref 'AWS::Region', us-gov-east-1]
 
@@ -162,25 +159,8 @@ Resources:
         PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
         VPCID: !GetAtt VPC.Outputs.VPCID
 
-  # EFS:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: !Sub
-  #       - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/efs-yaml.template
-  #       - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
-  #     Parameters:
-  #       EnvironmentName: !Ref AWS::StackName
-  #       VPC: !GetAtt VPC.Outputs.VPCID
-  #       VPCCIDR: !Ref VPCCIDR
-  #       Subnets: !Join [",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
-  #       EncryptionState: Encrypted
-  #       Cmk: !Ref Cmk
-  #       DeletionPolicy: Delete
-  #       PerformanceMode: generalPurpose
-
   ClaraCluster:
     Type: AWS::CloudFormation::Stack
-    # DependsOn: EFS
     Properties:
       TemplateURL: !Sub
         - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/clara-cluster-yaml.template
@@ -194,14 +174,12 @@ Resources:
         PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
         PrivateSubnet1AID: !GetAtt VPC.Outputs.PrivateSubnet1AID
         PrivateSubnet2AID: !GetAtt VPC.Outputs.PrivateSubnet2AID
-        # EFSSecurityGroup: !GetAtt EFS.Outputs.EFSSecurityGroup
         InstanceType: !Ref ECSHostInstanceType
         ClusterSize: !Ref ClusterSize
         DesiredServiceCount: !Ref DesiredServiceCount
         ContainerImageRegistry: !FindInMap [ Defaults, Clara, Uri ]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
-        # ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
         SourceCidrIP: !Ref SourceCidrIP
         BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
         PerformanceMode: generalPurpose
