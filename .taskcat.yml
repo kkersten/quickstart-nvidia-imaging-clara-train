@@ -10,4 +10,6 @@ tests:
       BastionKeyPairName: Clara2
       AvailabilityZones: '$[taskcat_getaz_2]'
       QSS3BucketName: '$[taskcat_autobucket]'
+      SourceCidrIP: 0.0.0.0/0
+      BastionAccessCidr: 0.0.0.0/0
       
