@@ -6,7 +6,6 @@ Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to resource names
     Type: String
-
   InstanceType:
     Description: Which instance type should we use to build the ECS cluster?
     Type: String
@@ -26,37 +25,29 @@ Parameters:
     - p3.8xlarge
     - p3.16xlarge
     - p3dn.24xlarge
-
   ClusterSize:
     Description: How many ECS hosts do you want to initially deploy?
     Type: Number
     Default: 1
-
   VPC:
     Description: Choose which VPC this ECS cluster should be deployed to
     Type: AWS::EC2::VPC::Id
-
   Subnets:
     Description: Choose which subnets this ECS cluster should be deployed to
     Type: List<AWS::EC2::Subnet::Id>
-
   LoadBalancerSecurityGroup:
     Description: The Security Group of the Application Load Balancer
     Type: AWS::EC2::SecurityGroup::Id
-
   EFSSecurityGroup:
     Description: The Security Group of the EFS that containers can mount
     Type: AWS::EC2::SecurityGroup::Id
-
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the ECS instances.
     Type: AWS::EC2::KeyPair::KeyName
-    
   ECSAMI:
     Description: ECS-Optimized AMI ID
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2/gpu/recommended/image_id
-
   BastionSecurityGroupID:
     Description: The Security Group of the bastion host, allowed to connect to private IPs of ECS hosts
     Type: AWS::EC2::SecurityGroup::Id

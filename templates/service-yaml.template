@@ -1,43 +1,35 @@
 Description: >
   This template deploys the Clara Train SDK as an ECS service, accessible via a load balancer.
-  The Clara container mounts an existing EFS so that models and data are persisted.
+  The Clara container mounts an existing EFS so models and data are persisted.
 
 Parameters:
   VPC:
     Description: The VPC that the ECS cluster is deployed to
     Type: AWS::EC2::VPC::Id
-
   Cluster:
     Description: Please provide the ECS Cluster ID that this service should run on
     Type: String
-
   DesiredCount:
     Description: Desired number of instances of this task to run across the cluster
     Type: Number
     Default: 1
-
   MaxCount:
     Description: Maximum number of instances of this task to run across the cluster
     Type: Number
     Default: 1
-
   Listener:
-    Description: The Application Load Balancer listener to register with
+    Description: Application Load Balancer listener to register with
     Type: String
-
   Path:
-    Description: The path to register with the Application Load Balancer
+    Description: Path to register with the Application Load Balancer
     Type: String
     Default: /
-
   ECSServiceAutoScalingRoleARN:
-    Description: The ECS service auto scaling role ARN
+    Description: ECS service auto scaling role ARN
     Type: String
-
   ElasticFileSystemDnsName:
     Description: DNS name for the Amazon EFS file system.
     Type: String
-
   ContainerImageRegistry: 
     Description: Location of docker image or repository registry to pull
     Type: String

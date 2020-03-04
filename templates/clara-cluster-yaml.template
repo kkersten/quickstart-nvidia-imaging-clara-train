@@ -36,7 +36,7 @@ Parameters:
     Description: ID of the private subnet 2
     Type: AWS::EC2::Subnet::Id
   Cmk:
-    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, will use AWS service key for encryption.
+    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption.
     Default: ''
     Type: String
   PerformanceMode:

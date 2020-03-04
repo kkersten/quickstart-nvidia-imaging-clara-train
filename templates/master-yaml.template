@@ -1,25 +1,24 @@
 Description: >
 
-  This template deploys a VPC, with a pair of public and private subnets spread 
+  This template deploys a VPC, with a pair of public and private subnets  
   across two Availability Zones. It deploys an Internet Gateway, with a default 
   route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
-  and default routes for them in the private subnets.
+  and corresponding default routes in the private subnets.
 
   It then deploys a bastion host to access private subnets, and an EFS to share
   and persist data across multiple container instances.
 
-  It then deploys a highly available ECS cluster using an AutoScaling Group, with 
-  ECS hosts distributed across multiple Availability Zones. 
-
-  Finally, it deploys the Clara Train SDK as an ECS service.
+  Finally, it deploys the Clara Train SDK as a service on 
+  a highly available ECS cluster, with an AutoScaling Group distributed across
+  two Availability Zones. 
 
 Parameters:
   KeyName: 
-    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   Cmk:
-    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, will use AWS service key for encryption.
+    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption.
     Default: ''
     Type: String
   VPCCIDR:
@@ -29,7 +28,7 @@ Parameters:
     Description: CIDR Block for the VPC.
     Type: String
   AvailabilityZones:
-    Description: 'List of Availability Zones to use for the subnets in the VPC. Note: ( The logical order is preserved and only 2 AZs are used for this deployment.'
+    Description: 'List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 2 AZs are used for this deployment.'
     Type: List<AWS::EC2::AvailabilityZone::Name>
   PrivateSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
@@ -91,32 +90,28 @@ Parameters:
     - p3.16xlarge
     - p3dn.24xlarge
   ClusterSize:
-    Description: How many ECS hosts do you want to initially deploy?
+    Description: Number of ECS hosts to initially deploy.
     Type: String
     AllowedPattern: ^\d+$
     Default: 1
-  ContainerImageRegistry: 
-    Description: Location of docker image or repository registry to pull
-    Type: String
-    Default: nvcr.io/nvidia/clara-train-sdk:v2.0
   DesiredServiceCount:
-    Description: How many instances of this task should we run across our cluster?
+    Description: Number of instances of this task to run across the cluster.
     Type: String
     AllowedPattern: ^\d+$
     Default: 1
   SourceCidrIP: 
-    Description: CIDR block from which connections to the load balancer will be accepted
+    Description: CIDR block from which connections to the load balancer will be accepted.
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/0-32
     Type: String
   BastionKeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Name of an existing EC2 KeyPair to enable SSH access to Bastion Host
+    Description: Name of an existing EC2 KeyPair to enable SSH access to Bastion Host.
     ConstraintDescription: Must be the name of an existing EC2 Key Pair
   BastionAccessCidr:
     AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
-    Description: CIDR block from which connections to the bastion host will be accepted
+    Description: CIDR block from which connections to the bastion host will be accepted.
     Type: String
 
 Mappings:
@@ -148,8 +143,6 @@ Resources:
 
   Bastion:
     Type: AWS::CloudFormation::Stack
-    DependsOn:
-    - VPC
     Properties:
       TemplateURL: !Sub 
       - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
@@ -189,10 +182,9 @@ Resources:
         Cmk: !Ref Cmk
 
 Outputs:
-
   ClaraServiceUrl:
     Description: The URL endpoint for the Clara Train service
-    Value: !Join ["", [!GetAtt ClaraCluster.Outputs.ClaraServiceUrl, "/"]]
+    Value: !Sub ${ClaraCluster.Outputs.ClaraServiceUrl}/
 
   ElasticFileSystemDnsName:
     Description: DNS name for the Amazon EFS file system.
