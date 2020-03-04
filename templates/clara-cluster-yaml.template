@@ -103,7 +103,6 @@ Resources:
         VPC: !Ref VPC
         VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
-        EncryptionState: Encrypted
         Cmk: !Ref Cmk
         DeletionPolicy: Delete
         PerformanceMode: !Ref PerformanceMode

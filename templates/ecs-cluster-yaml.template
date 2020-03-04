@@ -11,6 +11,21 @@ Parameters:
     Description: Which instance type should we use to build the ECS cluster?
     Type: String
     Default: p3.2xlarge
+    AllowedValues:
+    - g4dn.xlarge
+    - g4dn.2xlarge
+    - g4dn.4xlarge
+    - g4dn.8xlarge
+    - g4dn.16xlarge
+    - g4dn.12xlarge
+    - g3s.xlarge
+    - g3.4xlarge
+    - g3.8xlarge
+    - g3.16xlarge
+    - p3.2xlarge
+    - p3.8xlarge
+    - p3.16xlarge
+    - p3dn.24xlarge
 
   ClusterSize:
     Description: How many ECS hosts do you want to initially deploy?
@@ -85,7 +100,9 @@ Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Ref EnvironmentName
+      Tags: 
+      - Key: Environment
+        Value: !Ref EnvironmentName
 
   ECSAutoScalingGroup:
     DependsOn: ECSCluster
@@ -155,41 +172,33 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Path: /
-      AssumeRolePolicyDocument: |
-        {
-            "Statement": [{
-                "Action": "sts:AssumeRole",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ec2.amazonaws.com"
-                }
-            }]
-        }
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Policies:
         - PolicyName: ecs-service
-          PolicyDocument: |
-            {
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "ecs:CreateCluster",
-                        "ecs:DeregisterContainerInstance",
-                        "ecs:DiscoverPollEndpoint",
-                        "ecs:Poll",
-                        "ecs:RegisterContainerInstance",
-                        "ecs:StartTelemetrySession",
-                        "ecs:Submit*",
-                        "ecr:BatchCheckLayerAvailability",
-                        "ecr:BatchGetImage",
-                        "ecr:GetDownloadUrlForLayer",
-                        "ecr:GetAuthorizationToken"
-                    ],
-                    "Resource": "*"
-                }]
-            }
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+              - ecs:CreateCluster
+              - ecs:DeregisterContainerInstance
+              - ecs:DiscoverPollEndpoint
+              - ecs:Poll
+              - ecs:RegisterContainerInstance
+              - ecs:StartTelemetrySession
+              - ecs:Submit*
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:GetAuthorizationToken
+              Resource: "*"          
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-ECSRole-${AWS::Region}
