@@ -18,7 +18,7 @@ Parameters:
     Description: Two subnets this elastic file system should be deployed to
     Type: List<AWS::EC2::Subnet::Id>
   Cmk:
-    Description: An existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption.
+    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption. ID can be Key ID, ARN, Key Alias, or Key Alias ARN.
     Default: ''
     Type: String
   DeletionPolicy:
