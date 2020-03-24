@@ -96,7 +96,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/efs-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/efs.template.yaml
         - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
       Parameters:
         EnvironmentName: !Ref AWS::StackName
@@ -111,7 +111,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/load-balancer-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/load-balancer.template.yaml
         - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -123,7 +123,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/ecs-cluster-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/ecs-cluster.template.yaml
         - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
       Parameters:
         EnvironmentName: !Ref EnvironmentName
@@ -140,7 +140,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/service-yaml.template
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/service.template.yaml
         - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
       Parameters:
         VPC: !Ref VPC
