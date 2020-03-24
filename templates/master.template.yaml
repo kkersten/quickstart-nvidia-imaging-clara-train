@@ -12,6 +12,77 @@ Description: >
   a highly available ECS cluster, with an AutoScaling Group distributed across
   two Availability Zones. 
 
+Metadata:
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VPC network configuration
+        Parameters:
+        - AvailabilityZones
+        - VPCCIDR
+        - PrivateSubnet1CIDR
+        - PrivateSubnet2CIDR
+        - PublicSubnet1CIDR
+        - PublicSubnet2CIDR
+      - Label:
+          default: Linux bastion configuration
+        Parameters:
+        - BastionKeyPairName
+        - BastionAccessCidr
+      - Label:
+          default: EFS configuration
+        Parameters:
+        - Cmk
+      - Label:
+          default: ECS EC2 instance configuration
+        Parameters:
+        - KeyName
+        - ECSHostInstanceType
+      - Label:
+          default: ECS cluster configuration
+        Parameters:
+        - SourceCidrIP
+        - ClusterSize
+        - DesiredServiceCount
+      - Label:
+          default: AWS Quick Start configuration
+        Parameters:      
+        - QSS3BucketName
+        - QSS3KeyPrefix
+    ParameterLabels:
+      AvailabilityZones:
+        default: Availability Zones
+      VPCCIDR:
+        default: VPC CIDR
+      PrivateSubnet1CIDR:
+        default: Private subnet 1 CIDR
+      PrivateSubnet2CIDR:
+        default: Private subnet 2 CIDR
+      PublicSubnet1CIDR:
+        default: Public subnet 1 CIDR
+      PublicSubnet2CIDR:
+        default: Public subnet 2 CIDR
+      BastionKeyPairName:
+        default: Bastion key pair name
+      BastionAccessCidr:
+        default: Allowed bastion external access CIDR 
+      Cmk:
+        default: KMS Customer Master Key for EFS encryption
+      KeyName:
+        default: Key pair name
+      ECSHostInstanceType:
+        default: ECS EC2 instance type
+      SourceCidrIP: 
+        default: Allowed load balancer external access CIDR 
+      ClusterSize:
+        default: Number of ECS hosts
+      DesiredServiceCount:
+        default: Number of instances of this Clara Train task
+      QSS3BucketName:
+        default: Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: Quick Start S3 key prefix
 Parameters:
   KeyName: 
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance.
