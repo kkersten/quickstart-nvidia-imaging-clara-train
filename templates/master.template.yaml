@@ -89,7 +89,7 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   Cmk:
-    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption. ID can be Key ID, ARN, Key Alias, or Key Alias ARN.
+    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt EFS. If left blank, an AWS service key will be used for encryption. ID can be Key ID, ARN, Key Alias, or Key Alias ARN.
     Default: ''
     Type: String
   VPCCIDR:
@@ -142,7 +142,7 @@ Parameters:
       (.) and forward slash (/) and it should end with a forward slash (/).
     Type: String
   ECSHostInstanceType:
-    Description: Amazon EC2 instance type for the ECS host instances.
+    Description: Instance type for the ECS hosts
     Type: String
     Default: p3.2xlarge
     AllowedValues:
@@ -151,12 +151,12 @@ Parameters:
     - p3.16xlarge
     - p3dn.24xlarge
   ClusterSize:
-    Description: Number of ECS hosts to initially deploy.
+    Description: Number of ECS hosts
     Type: String
     AllowedPattern: ^\d+$
     Default: 1
   DesiredServiceCount:
-    Description: Number of instances of this task to run across the cluster.
+    Description: Number of Clara service instances
     Type: String
     AllowedPattern: ^\d+$
     Default: 1
@@ -223,7 +223,6 @@ Resources:
         - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/clara-cluster.template.yaml
         - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
       Parameters:
-        EnvironmentName: !Ref AWS::StackName
         KeyName: !Ref KeyName
         VPC: !GetAtt VPC.Outputs.VPCID
         VPCCIDR: !Ref VPCCIDR
@@ -231,7 +230,7 @@ Resources:
         PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
         PrivateSubnet1AID: !GetAtt VPC.Outputs.PrivateSubnet1AID
         PrivateSubnet2AID: !GetAtt VPC.Outputs.PrivateSubnet2AID
-        InstanceType: !Ref ECSHostInstanceType
+        ECSHostInstanceType: !Ref ECSHostInstanceType
         ClusterSize: !Ref ClusterSize
         DesiredServiceCount: !Ref DesiredServiceCount
         ContainerImageRegistry: !FindInMap [ Defaults, Clara, Uri ]
