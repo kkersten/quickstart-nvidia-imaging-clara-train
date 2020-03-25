@@ -4,7 +4,7 @@ project:
     - us-west-2
 tests:
   default:
-    template: ./templates/master-yaml.template
+    template: ./templates/master.template.yaml
     parameters: 
       KeyName: Clara2
       BastionKeyPairName: Clara2
