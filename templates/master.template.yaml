@@ -31,10 +31,6 @@ Metadata:
         - BastionKeyPairName
         - BastionAccessCidr
       - Label:
-          default: EFS configuration
-        Parameters:
-        - Cmk
-      - Label:
           default: ECS EC2 instance configuration
         Parameters:
         - KeyName
@@ -67,8 +63,6 @@ Metadata:
         default: Bastion key pair name
       BastionAccessCidr:
         default: Allowed bastion external access CIDR 
-      Cmk:
-        default: KMS Customer Master Key for EFS encryption
       KeyName:
         default: Key pair name
       ECSHostInstanceType:
@@ -88,10 +82,6 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-  Cmk:
-    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt EFS. If left blank, an AWS service key will be used for encryption. ID can be Key ID, ARN, Key Alias, or Key Alias ARN.
-    Default: ''
-    Type: String
   VPCCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
@@ -239,7 +229,6 @@ Resources:
         SourceCidrIP: !Ref SourceCidrIP
         BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
         PerformanceMode: generalPurpose
-        Cmk: !Ref Cmk
 
 Outputs:
   ClaraServiceUrl:

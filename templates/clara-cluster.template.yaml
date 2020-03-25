@@ -24,7 +24,6 @@ Metadata:
       - Label:
           default: EFS configuration
         Parameters:
-        - Cmk
         - PerformanceMode
       - Label:
           default: ECS EC2 instance configuration
@@ -57,8 +56,6 @@ Metadata:
         default: Private subnet 1 ID
       PrivateSubnet2AID:
         default: Private subnet 2 ID
-      Cmk:
-        default: KMS Customer Master Key for EFS encryption
       PerformanceMode:
         default: EFS performance mode
       KeyName:
@@ -103,10 +100,6 @@ Parameters:
   PrivateSubnet2AID:
     Description: ID of the private subnet 2
     Type: AWS::EC2::Subnet::Id
-  Cmk:
-    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt EFS. If left blank, an AWS service key will be used for encryption.
-    Default: ''
-    Type: String
   PerformanceMode:
     AllowedValues:
       - generalPurpose
@@ -171,7 +164,6 @@ Resources:
         VPC: !Ref VPC
         VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
-        Cmk: !Ref Cmk
         DeletionPolicy: Delete
         PerformanceMode: !Ref PerformanceMode
 

@@ -17,10 +17,6 @@ Parameters:
   Subnets:
     Description: Two subnets this elastic file system should be deployed to
     Type: List<AWS::EC2::Subnet::Id>
-  Cmk:
-    Description: ID of an existing AWS KMS Customer Master Key (CMK) to encrypt file system. If left blank, an AWS service key will be used for encryption. ID can be Key ID, ARN, Key Alias, or Key Alias ARN.
-    Default: ''
-    Type: String
   DeletionPolicy:
     AllowedValues:
       - Delete
@@ -37,8 +33,6 @@ Parameters:
     Type: String
 
 Conditions:
-  UseAWS-ManagedCMK:
-    !Equals [ '', !Ref Cmk ]
   Delete:
     !Equals [ !Ref DeletionPolicy, Delete ]
   Retain:
@@ -71,8 +65,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       Encrypted: true
-      KmsKeyId: 
-        !If [ UseAWS-ManagedCMK, !Ref 'AWS::NoValue', !Ref Cmk ]
+      KmsKeyId: !Ref 'AWS::NoValue'
       FileSystemTags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-EFS
@@ -83,8 +76,7 @@ Resources:
     DeletionPolicy: Delete
     Properties:
       Encrypted: true
-      KmsKeyId:
-        !If [ UseAWS-ManagedCMK, !Ref 'AWS::NoValue', !Ref Cmk ]
+      KmsKeyId: !Ref 'AWS::NoValue'
       FileSystemTags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-EFS
