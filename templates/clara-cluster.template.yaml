@@ -24,6 +24,7 @@ Metadata:
       - Label:
           default: EFS configuration
         Parameters:
+        - EFSDeletionPolicy
         - PerformanceMode
       - Label:
           default: ECS EC2 instance configuration
@@ -56,6 +57,8 @@ Metadata:
         default: Private subnet 1 ID
       PrivateSubnet2AID:
         default: Private subnet 2 ID
+      EFSDeletionPolicy:
+        default: EFS deletion policy
       PerformanceMode:
         default: EFS performance mode
       KeyName:
@@ -100,6 +103,13 @@ Parameters:
   PrivateSubnet2AID:
     Description: ID of the private subnet 2
     Type: AWS::EC2::Subnet::Id
+  EFSDeletionPolicy:
+    AllowedValues:
+      - Delete
+      - Retain
+    Default: Delete
+    Description: Retain or delete the Amazon EFS resources after CloudFormation stack deletion.
+    Type: String
   PerformanceMode:
     AllowedValues:
       - generalPurpose
@@ -164,7 +174,7 @@ Resources:
         VPC: !Ref VPC
         VPCCIDR: !Ref VPCCIDR
         Subnets: !Join [",", [!Ref PrivateSubnet1AID, !Ref PrivateSubnet2AID]]
-        DeletionPolicy: Delete
+        DeletionPolicy: !Ref EFSDeletionPolicy
         PerformanceMode: !Ref PerformanceMode
 
   ALB:
