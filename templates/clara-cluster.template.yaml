@@ -35,6 +35,8 @@ Metadata:
           default: ECS cluster configuration
         Parameters:
         - SourceCidrIP
+        - UseHTTPS
+        - CertificateID
         - ClusterSize
         - ContainerImageRegistry
         - DesiredServiceCount
@@ -67,6 +69,10 @@ Metadata:
         default: ECS EC2 instance type
       SourceCidrIP: 
         default: Allowed load balancer external access CIDR 
+      UseHTTPS:
+        default: Enable end-to-end encryption of connections to annotation server
+      CertificateID:
+        default: ARN for the Certificate to use for TLS. Otherwise leave blank for HTTP.
       ClusterSize:
         default: Number of ECS hosts
       ContainerImageRegistry:
@@ -156,6 +162,18 @@ Parameters:
   BastionSecurityGroupID: 
     Description: The Security Group of the bastion host, allowed to connect to private IPs of ECS hosts
     Type: AWS::EC2::SecurityGroup::Id
+  UseHTTPS:
+    Description: Enable end-to-end encryption of connections to annotation server
+    AllowedValues:
+     - HTTPS
+     - HTTP
+    Default: HTTPS
+    Type: String
+  CertificateID:
+    Description: ARN for the Certificate to use for TLS
+    Default: ''
+    Type: String  
+  
 
 Conditions:
   GovCloudWestCondition: !Equals [ !Ref 'AWS::Region', us-gov-west-1]
@@ -188,6 +206,8 @@ Resources:
         VPC: !Ref VPC
         Subnets: !Join [",", [!Ref PublicSubnet1ID, !Ref PublicSubnet2ID]]
         SourceCidrIP: !Ref SourceCidrIP
+        UseHTTPS: !Ref UseHTTPS
+        CertificateID: !Ref CertificateID
 
   ECS:
     Type: AWS::CloudFormation::Stack
@@ -205,6 +225,7 @@ Resources:
         EFSSecurityGroup: !GetAtt EFS.Outputs.EFSSecurityGroup
         KeyName: !Ref KeyName
         BastionSecurityGroupID: !Ref BastionSecurityGroupID
+        ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
 
   ClaraService:
     Type: AWS::CloudFormation::Stack
@@ -217,6 +238,7 @@ Resources:
         Cluster: !GetAtt ECS.Outputs.Cluster
         DesiredCount: !Ref DesiredServiceCount
         Listener: !GetAtt ALB.Outputs.Listener
+        # TLSListener: !GetAtt ALB.Outputs.TLSListener
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
         ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
