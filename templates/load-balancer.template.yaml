@@ -56,10 +56,6 @@ Resources:
           IpProtocol: tcp
           FromPort: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
           ToPort: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
-        # - CidrIp: !Ref SourceCidrIP
-        #   IpProtocol: tcp
-        #   FromPort: 443
-        #   ToPort: 443
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-LoadBalancers
@@ -110,16 +106,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-
-  # TLSTargetGroup:
-  #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
-  #   Properties:
-  #     VpcId: !Ref VPC
-  #     Port: 443
-  #     Protocol: HTTPS
-  #     Tags:
-  #       - Key: Name
-  #         Value: !Ref EnvironmentName
 
 Outputs:
   LoadBalancerSecurityGroup:

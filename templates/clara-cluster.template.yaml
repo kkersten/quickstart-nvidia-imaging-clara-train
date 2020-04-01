@@ -70,9 +70,9 @@ Metadata:
       SourceCidrIP: 
         default: Allowed load balancer external access CIDR 
       UseHTTPS:
-        default: Enable end-to-end encryption of connections to annotation server
+        default: Enable end-to-end encryption of connections to the AI-Assisted Annotation service
       CertificateID:
-        default: ARN for the Certificate to use for TLS. Otherwise leave blank for HTTP.
+        default: ARN for the Certificate to use for TLS. Otherwise leave blank for HTTP
       ClusterSize:
         default: Number of ECS hosts
       ContainerImageRegistry:
@@ -242,6 +242,7 @@ Resources:
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
         ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
         ContainerImageRegistry: !Ref ContainerImageRegistry
+        UseHTTPS: !Ref UseHTTPS
 
 Outputs:
 
