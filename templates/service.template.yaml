@@ -20,6 +20,9 @@ Parameters:
   Listener:
     Description: Application Load Balancer listener to register with
     Type: String
+  # TLSListener:
+  #   Description: Application Load Balancer listener to register with for HTTPS traffic
+  #   Type: String
   Path:
     Description: Path to register with the Application Load Balancer
     Type: String
@@ -33,6 +36,29 @@ Parameters:
   ContainerImageRegistry: 
     Description: Location of docker image or repository registry to pull
     Type: String
+  UseHTTPS:
+    Description: Enable end-to-end encryption of connections to annotation server
+    AllowedValues:
+     - HTTPS
+     - HTTP
+    Default: HTTPS
+    Type: String
+
+Conditions:
+  HTTPS:
+    !Equals [ !Ref UseHTTPS, HTTPS ] 
+  HTTP:
+    !Equals [ !Ref UseHTTPS, HTTP ]
+
+Mappings:
+  Defaults:
+    HTTPS:
+      Port: 443
+      Command: "start_aas.sh --debug 1 --ssl true --ssl_cert_file /workspace/certs/clara.crt --ssl_pkey_file /workspace/certs/clara.key --workspace /workspace/AIAA"
+    HTTP:
+      Port: 80
+      Command: "start_aas.sh --debug 1 --workspace /workspace/AIAA"
+
 
 Resources:
   Service:
@@ -45,9 +71,29 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       HealthCheckGracePeriodSeconds: 180
       LoadBalancers:
+        # - ContainerName: "website-service"
+        #   ContainerPort: 80
+        #   TargetGroupArn: !Ref TargetGroup
         - ContainerName: "website-service"
-          ContainerPort: 80
+          ContainerPort: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
           TargetGroupArn: !Ref TargetGroup
+
+  # TLSService:
+  #   Type: AWS::ECS::Service
+  #   DependsOn: ListenerRule
+  #   Properties:
+  #     Cluster: !Ref Cluster
+  #     Role: !Ref ServiceRole
+  #     DesiredCount: !Ref DesiredCount
+  #     TaskDefinition: !Ref TaskDefinition
+  #     HealthCheckGracePeriodSeconds: 180
+  #     LoadBalancers:
+  #       # - ContainerName: "website-service"
+  #       #   ContainerPort: 80
+  #       #   TargetGroupArn: !Ref TargetGroup
+  #       - ContainerName: "website-service"
+  #         ContainerPort: 443
+  #         TargetGroupArn: !Ref TLSTargetGroup
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -58,31 +104,36 @@ Resources:
           Essential: true
           Image: !Ref ContainerImageRegistry
           Memory: 24576
-          Command: ["start_aas.sh", "--workspace", "/workspace/AIAA", "--engine", "AIAA", "--debug", "1"]
+          Command: [!FindInMap [ Defaults, !Ref UseHTTPS, Command]]
           EntryPoint: ["sh", "-c"]
           PortMappings:
-            - ContainerPort: 80
+#             - ContainerPort: 80
+            - ContainerPort: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
+              # HostPort: 443
+              # Protocol: tcp
           LogConfiguration:
             LogDriver: awslogs
             Options:
               awslogs-group: !Ref CloudWatchLogsGroup
               awslogs-region: !Ref AWS::Region
           MountPoints: 
-            - ContainerPath: "/workspace/"
+            - ContainerPath: "/workspace"
               SourceVolume: "clara-efs"
           ResourceRequirements:
             - Type: GPU
               Value: "1"
       Volumes:
         - Name: "clara-efs"
-          DockerVolumeConfiguration:
-            Autoprovision: true
-            Scope: "shared"
-            Driver: "local"
-            DriverOpts:
-              type: "nfs"
-              device: ":/"
-              o: !Join [ '', ["addr=", !Ref ElasticFileSystemDnsName, ",nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport"]]
+          Host:
+            SourcePath: /mnt/efs
+          # DockerVolumeConfiguration:
+          #   Autoprovision: true
+          #   Scope: "shared"
+          #   Driver: "local"
+          #   DriverOpts:
+          #     type: "nfs"
+          #     device: ":/"
+          #     o: !Join [ '', ["addr=", !Ref ElasticFileSystemDnsName, ",nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport"]]
 
   CloudWatchLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -90,17 +141,31 @@ Resources:
       LogGroupName: !Ref AWS::StackName
       RetentionInDays: 365
 
+  # TargetGroup:
+  #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     Port: 80
+  #     Protocol: HTTP
+  #     Matcher:
+  #       HttpCode: 200-299
+  #     HealthCheckIntervalSeconds: 30
+  #     HealthCheckPath: /docs/
+  #     HealthCheckProtocol: HTTP
+  #     HealthCheckTimeoutSeconds: 5
+  #     HealthyThresholdCount: 2
+
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       VpcId: !Ref VPC
-      Port: 80
-      Protocol: HTTP
+      Port: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
+      Protocol: HTTPS
       Matcher:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 30
       HealthCheckPath: /docs/
-      HealthCheckProtocol: HTTP
+      HealthCheckProtocol: HTTPS
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
 
@@ -116,6 +181,21 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
+
+  # TLSListenerRule:
+  # ListenerRule:
+  #   Type: AWS::ElasticLoadBalancingV2::ListenerRule
+  #   Properties:
+  #     ListenerArn: !Ref TLSListener
+  #     Priority: 1
+  #     Conditions:
+  #       - Field: path-pattern
+  #         Values:
+  #           - !Join ['', [!Ref Path, '*']]
+  #     Actions:
+  #       - TargetGroupArn: !Ref TLSTargetGroup
+  #         Type: forward
+
 
   # This IAM Role grants the service access to register/unregister with the
   # Application Load Balancer (ALB). It is based on the default documented here:
