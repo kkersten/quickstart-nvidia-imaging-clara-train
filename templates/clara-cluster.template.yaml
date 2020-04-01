@@ -238,7 +238,6 @@ Resources:
         Cluster: !GetAtt ECS.Outputs.Cluster
         DesiredCount: !Ref DesiredServiceCount
         Listener: !GetAtt ALB.Outputs.Listener
-        # TLSListener: !GetAtt ALB.Outputs.TLSListener
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
         ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
