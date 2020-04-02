@@ -52,9 +52,11 @@ Mappings:
     HTTPS:
       Port: 443
       Command: "start_aas.sh --debug 1 --ssl true --ssl_cert_file /workspace/certs/clara.crt --ssl_pkey_file /workspace/certs/clara.key --workspace /workspace/AIAA"
+      Protocol: HTTPS
     HTTP:
       Port: 80
       Command: "start_aas.sh --debug 1 --workspace /workspace/AIAA"
+      Protocol: HTTP
 
 Resources:
   Service:
@@ -97,8 +99,14 @@ Resources:
               Value: "1"
       Volumes:
         - Name: "clara-efs"
-          Host:
-            SourcePath: /mnt/efs
+          DockerVolumeConfiguration:
+            Autoprovision: true
+            Scope: "shared"
+            Driver: "local"
+            DriverOpts:
+              type: "nfs"
+              device: ":/"
+              o: !Join [ '', ["addr=", !Ref ElasticFileSystemDnsName, ",nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport"]]
 
   CloudWatchLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -111,12 +119,12 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       Port: !FindInMap [ Defaults, !Ref UseHTTPS, Port]
-      Protocol: HTTPS
+      Protocol: !FindInMap [ Defaults, !Ref UseHTTPS, Protocol]
       Matcher:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 30
       HealthCheckPath: /docs/
-      HealthCheckProtocol: HTTPS
+      HealthCheckProtocol: !FindInMap [ Defaults, !Ref UseHTTPS, Protocol]
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
 
