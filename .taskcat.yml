@@ -1,15 +1,30 @@
 project:
   name: quickstart-nvidia-clara
   regions:
+#    - us-east-1
+#    - us-east-2
     - us-west-2
 tests:
   default:
     template: ./templates/master.template.yaml
     parameters: 
-      KeyName: Clara2
-      BastionKeyPairName: Clara2
+      KeyName: FakeKey
+      BastionKeyPairName: FakeKey
       AvailabilityZones: '$[taskcat_getaz_2]'
       QSS3BucketName: '$[taskcat_autobucket]'
       SourceCidrIP: 0.0.0.0/0
       BastionAccessCidr: 0.0.0.0/0
-      
+      CertificateID: 'arn:aws:acm:us-west-2:377457852517:certificate/blahblah'
+      UseHTTPS: HTTPS
+  # testHttpOnly:
+  #   template: ./templates/master.template.yaml
+  #   parameters: 
+  #     KeyName: FakeKey
+  #     BastionKeyPairName: FakeKey
+  #     AvailabilityZones: '$[taskcat_getaz_2]'
+  #     QSS3BucketName: '$[taskcat_autobucket]'
+  #     SourceCidrIP: 0.0.0.0/0
+  #     BastionAccessCidr: 0.0.0.0/0
+  #     CertificateID: ''
+  #     UseHTTPS: HTTP
+
