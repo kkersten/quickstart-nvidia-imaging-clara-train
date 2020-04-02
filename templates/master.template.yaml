@@ -36,7 +36,7 @@ Metadata:
         - EFSDeletionPolicy
         - PerformanceMode
       - Label:
-          default: ECS EC2 instance configuration
+          default: ECS EC2 configuration
         Parameters:
         - KeyName
         - ECSHostInstanceType
