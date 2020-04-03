@@ -31,6 +31,11 @@ Metadata:
         - BastionKeyPairName
         - BastionAccessCidr
       - Label:
+          default: EFS configuration
+        Parameters:
+          - EFSDeletionPolicy
+          - PerformanceMode
+      - Label:
           default: ECS EC2 instance configuration
         Parameters:
         - KeyName
@@ -64,6 +69,10 @@ Metadata:
         default: Bastion key pair name
       BastionAccessCidr:
         default: Allowed bastion external access CIDR 
+      EFSDeletionPolicy:
+        default: EFS deletion policy
+      PerformanceMode:
+        default: EFS performance mode
       KeyName:
         default: Key pair name
       ECSHostInstanceType:
@@ -137,6 +146,20 @@ Parameters:
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can
       include numbers, lowercase letters, uppercase letters, hyphens (-), dots
       (.) and forward slash (/) and it should end with a forward slash (/).
+    Type: String
+  EFSDeletionPolicy:
+    AllowedValues:
+      - Delete
+      - Retain
+    Default: Delete
+    Description: Retain or delete the Amazon EFS resources after CloudFormation stack deletion.
+    Type: String
+  PerformanceMode:
+    AllowedValues:
+      - generalPurpose
+      - maxIO
+    Default: generalPurpose
+    Description: Select performance mode of EFS file system.
     Type: String
   ECSHostInstanceType:
     Description: Instance type for the ECS hosts
@@ -238,7 +261,8 @@ Resources:
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         SourceCidrIP: !Ref SourceCidrIP
         BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
-        PerformanceMode: generalPurpose
+        PerformanceMode: !Ref PerformanceMode
+        EFSDeletionPolicy: !Ref EFSDeletionPolicy
 
 Outputs:
   ClaraServiceUrl:
