@@ -13,7 +13,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: Existing VPC
+          default: Network configuration
         Parameters:
         - VPC
         - VPCCIDR
@@ -38,7 +38,6 @@ Metadata:
         - UseHTTPS
         - CertificateID
         - ClusterSize
-        - ContainerImageRegistry
         - DesiredServiceCount
         - BastionSecurityGroupID
       - Label:
@@ -76,8 +75,6 @@ Metadata:
         default: ARN for the Certificate to use for TLS. Otherwise leave blank for HTTP
       ClusterSize:
         default: Number of ECS hosts
-      ContainerImageRegistry:
-        default: Container registry 
       DesiredServiceCount:
         default: Number of instances of this Clara Train task    
       BastionSecurityGroupID:
@@ -94,10 +91,10 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
   VPC:
-    Description: VPC this ECS cluster should be deployed to
+    Description: ID of the VPC this ECS cluster should be deployed to
     Type: AWS::EC2::VPC::Id
   VPCCIDR:
-    Description: CIDR for VPC this ECS cluster should be deployed to
+    Description: The CIDR block of the VPC this ECS cluster should be deployed to
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
     Type: String
   PublicSubnet1ID:
@@ -124,7 +121,7 @@ Parameters:
       - generalPurpose
       - maxIO
     Default: generalPurpose
-    Description: Select performance mode of EFS file system.
+    Description: The performance mode of the EFS file system.
     Type: String
   ECSHostInstanceType:
     Description: Instance type for ECS hosts
@@ -138,9 +135,6 @@ Parameters:
     Description: Number of Clara service instances
     Type: Number
     Default: 1
-  ContainerImageRegistry: 
-    Description: Location of docker registry
-    Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
     ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
@@ -170,20 +164,25 @@ Parameters:
     Description: The Security Group of the bastion host, allowed to connect to private IPs of ECS hosts
     Type: AWS::EC2::SecurityGroup::Id
   UseHTTPS:
-    Description: Enable end-to-end encryption of connections to annotation server
+    Description: The default value 'HTTPS' enables end-to-end encryption of connections to annotation server. Choose HTTP to enable unencrypted connections (not recommended for production use).
     AllowedValues:
      - HTTPS
      - HTTP
     Default: HTTPS
     Type: String
   CertificateID:
-    Description: ARN for the Certificate to use for TLS
+    Description: The ARN of the Certificate to use for TLS. You must specify this value if UseHTTPS is set to HTTPS.
     Default: ''
     Type: String  
   
 
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+
+Mappings:
+  Defaults:
+    Clara:
+      Uri: nvcr.io/nvidia/clara-train-sdk:v2.0
 
 Resources:
 
@@ -251,7 +250,7 @@ Resources:
         Path: /
         ECSServiceAutoScalingRoleARN: !GetAtt ECS.Outputs.ECSServiceAutoScalingRole
         ElasticFileSystemDnsName: !GetAtt EFS.Outputs.ElasticFileSystemDnsName
-        ContainerImageRegistry: !Ref ContainerImageRegistry
+        ContainerImageRegistry: !FindInMap [ Defaults, Clara, Uri ]
         UseHTTPS: !Ref UseHTTPS
 
 Outputs:
