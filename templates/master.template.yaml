@@ -33,10 +33,10 @@ Metadata:
       - Label:
           default: EFS configuration
         Parameters:
-        - EFSDeletionPolicy
-        - PerformanceMode
+          - EFSDeletionPolicy
+          - PerformanceMode
       - Label:
-          default: ECS EC2 configuration
+          default: ECS EC2 instance configuration
         Parameters:
         - KeyName
         - ECSHostInstanceType
@@ -52,6 +52,7 @@ Metadata:
           default: AWS Quick Start configuration
         Parameters:      
         - QSS3BucketName
+        - QSS3BucketRegion
         - QSS3KeyPrefix
     ParameterLabels:
       AvailabilityZones:
@@ -90,6 +91,8 @@ Metadata:
         default: Number of instances of this Clara Train task
       QSS3BucketName:
         default: Quick Start S3 bucket name
+      QSS3BucketRegion:
+        default: Quick Start S3 bucket region
       QSS3KeyPrefix:
         default: Quick Start S3 key prefix
 Parameters:
@@ -152,6 +155,10 @@ Parameters:
       include numbers, lowercase letters, uppercase letters, and hyphens (-). It
       cannot start or end with a hyphen (-).
     Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: 'The AWS Region where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
+    Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
     ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), dots (.) and forward slash (/). The prefix should end with a forward slash (/).
@@ -213,16 +220,16 @@ Mappings:
       Uri: nvcr.io/nvidia/clara-train-sdk:v2.0
 
 Conditions:
-  GovCloudWestCondition: !Equals [ !Ref 'AWS::Region', us-gov-west-1]
-  GovCloudEastCondition: !Equals [ !Ref 'AWS::Region', us-gov-east-1]
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
 
 Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
-        - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         AvailabilityZones: !Join [",", !Ref AvailabilityZones]
         NumberOfAZs: '2'
@@ -236,8 +243,9 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub 
-      - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
-      - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
+      - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template
+      - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         BastionInstanceType: !FindInMap [ Defaults, Bastion, InstanceType ]
         KeyPairName: !Ref BastionKeyPairName
@@ -250,8 +258,9 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/clara-cluster.template.yaml
-        - QSS3Region: !If [ GovCloudWestCondition, s3.us-gov-west-1, !If [ GovCloudEastCondition, s3.us-gov-east-1, s3 ] ]
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/clara-cluster.template.yaml
+        - S3Region: !If [UsingDefaultBucket, !Ref 'AWS::Region', !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         KeyName: !Ref KeyName
         VPC: !GetAtt VPC.Outputs.VPCID
@@ -265,6 +274,7 @@ Resources:
         DesiredServiceCount: !Ref DesiredServiceCount
         ContainerImageRegistry: !FindInMap [ Defaults, Clara, Uri ]
         QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
         SourceCidrIP: !Ref SourceCidrIP
         BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
