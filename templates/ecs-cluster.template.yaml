@@ -41,6 +41,9 @@ Parameters:
   BastionSecurityGroupID:
     Description: The Security Group of the bastion host, allowed to connect to private IPs of ECS hosts
     Type: AWS::EC2::SecurityGroup::Id
+  ElasticFileSystemDnsName:
+    Description: DNS name for the Amazon EFS file system.
+    Type: String
 
 Resources:
 
@@ -124,11 +127,24 @@ Resources:
       IamInstanceProfile: !Ref ECSInstanceProfile
       KeyName: !Ref KeyName
       UserData:
-        "Fn::Base64": !Sub |
-          #!/bin/bash
-          yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
-          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum install -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+            /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
+            mkdir -p /mnt/efs
+            chown ec2-user:ec2-user /mnt/efs
+            mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${ElasticFileSystemDnsName}:/ /mnt/efs
+            mkdir -p /mnt/efs/certs
+            chown ec2-user:ec2-user /mnt/efs/certs
+            BASENAME=clara
+            openssl genrsa -des3 -passout pass:x -out /mnt/efs/certs/$BASENAME.key.passcode.tmp 2048
+            openssl rsa -passin pass:x -in /mnt/efs/certs/$BASENAME.key.passcode.tmp -out /mnt/efs/certs/$BASENAME.key
+            yes "" | openssl req -new -key /mnt/efs/certs/$BASENAME.key -out /mnt/efs/certs/$BASENAME.csr.tmp
+            openssl x509 -req -sha256 -days 365 -in /mnt/efs/certs/$BASENAME.csr.tmp -signkey /mnt/efs/certs/$BASENAME.key -out /mnt/efs/certs/$BASENAME.crt
+            rm /mnt/efs/certs/$BASENAME.key.passcode.tmp
+            rm /mnt/efs/certs/$BASENAME.csr.tmp
 
     Metadata:
       AWS::CloudFormation::Init:
@@ -136,7 +152,6 @@ Resources:
           # packages:
           #  yum:
           #    collectd: []
-
           commands:
             01_add_instance_to_cluster:
               command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config

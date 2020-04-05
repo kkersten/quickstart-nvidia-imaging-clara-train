@@ -44,6 +44,8 @@ Metadata:
           default: ECS cluster configuration
         Parameters:
         - SourceCidrIP
+        - CertificateID
+        - UseHTTPS
         - ClusterSize
         - DesiredServiceCount
       - Label:
@@ -74,11 +76,15 @@ Metadata:
       PerformanceMode:
         default: EFS performance mode
       KeyName:
-        default: Key pair name
+        default: ECS EC2 key pair name
       ECSHostInstanceType:
         default: ECS EC2 instance type
       SourceCidrIP: 
         default: Allowed load balancer external access CIDR 
+      UseHTTPS:
+        default: Enable end-to-end encryption of connections to the AI-Assisted Annotation service
+      CertificateID:
+        default: ARN for the ACM Certificate to use for TLS. Leave blank for HTTP connections
       ClusterSize:
         default: Number of ECS hosts
       DesiredServiceCount:
@@ -127,6 +133,20 @@ Parameters:
     Default: 10.180.16.0/21
     Description: CIDR Block for the public DMZ subnet 2 located in Availability Zone 2.
     Type: String
+  EFSDeletionPolicy:
+    AllowedValues:
+      - Delete
+      - Retain
+    Default: Delete
+    Description: Retain or delete the Amazon EFS resources after CloudFormation stack deletion.
+    Type: String
+  PerformanceMode:
+    AllowedValues:
+      - generalPurpose
+      - maxIO
+    Default: generalPurpose
+    Description: Select performance mode of EFS file system.
+    Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
     ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
@@ -146,20 +166,6 @@ Parameters:
     Description: S3 key prefix for the Quick Start assets. Quick Start key prefix can
       include numbers, lowercase letters, uppercase letters, hyphens (-), dots
       (.) and forward slash (/) and it should end with a forward slash (/).
-    Type: String
-  EFSDeletionPolicy:
-    AllowedValues:
-      - Delete
-      - Retain
-    Default: Delete
-    Description: Retain or delete the Amazon EFS resources after CloudFormation stack deletion.
-    Type: String
-  PerformanceMode:
-    AllowedValues:
-      - generalPurpose
-      - maxIO
-    Default: generalPurpose
-    Description: Select performance mode of EFS file system.
     Type: String
   ECSHostInstanceType:
     Description: Instance type for the ECS hosts
@@ -194,6 +200,17 @@ Parameters:
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
     Description: CIDR block from which connections to the bastion host will be accepted.
     Type: String
+  CertificateID:
+    Description: ARN for the Certificate to use for TLS
+    Default: ''
+    Type: String
+  UseHTTPS:
+    Description: Enable end-to-end encryption of connections to annotation server
+    AllowedValues:
+     - HTTPS
+     - HTTP
+    Default: HTTPS
+    Type: String  
 
 Mappings:
   Defaults:
@@ -263,6 +280,8 @@ Resources:
         BastionSecurityGroupID: !GetAtt Bastion.Outputs.BastionSecurityGroupID
         PerformanceMode: !Ref PerformanceMode
         EFSDeletionPolicy: !Ref EFSDeletionPolicy
+        CertificateID: !Ref CertificateID
+        UseHTTPS: !Ref UseHTTPS
 
 Outputs:
   ClaraServiceUrl:

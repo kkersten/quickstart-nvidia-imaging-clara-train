@@ -2,11 +2,13 @@ project:
   name: quickstart-nvidia-clara
   shorten_stack_name: true
   regions:
+#    - us-east-1
+#    - us-east-2
     - us-west-2
 tests:
   clara:
     template: ./templates/master.template.yaml
-    parameters: 
+    parameters:
       KeyName: $[taskcat_getkeypair]
       BastionKeyPairName: $[taskcat_getkeypair]
       AvailabilityZones: '$[taskcat_getaz_2]'
@@ -14,4 +16,16 @@ tests:
       QSS3BucketRegion: $[taskcat_current_region]
       SourceCidrIP: 10.0.0.0/16
       BastionAccessCidr: 10.0.0.0/16
-      
+      CertificateID: 'arn:aws:acm:us-west-2:377457852517:certificate/blahblah'
+      UseHTTPS: HTTPS
+  # testHttpOnly:
+  #   template: ./templates/master.template.yaml
+  #   parameters: 
+  #     KeyName: FakeKey
+  #     BastionKeyPairName: FakeKey
+  #     AvailabilityZones: '$[taskcat_getaz_2]'
+  #     QSS3BucketName: '$[taskcat_autobucket]'
+  #     SourceCidrIP: 0.0.0.0/0
+  #     BastionAccessCidr: 0.0.0.0/0
+  #     CertificateID: ''
+  #     UseHTTPS: HTTP
