@@ -44,8 +44,8 @@ Metadata:
           default: ECS cluster configuration
         Parameters:
         - SourceCidrIP
-        - CertificateID
         - UseHTTPS
+        - CertificateID
         - ClusterSize
         - DesiredServiceCount
       - Label:
@@ -145,7 +145,7 @@ Parameters:
       - generalPurpose
       - maxIO
     Default: generalPurpose
-    Description: Select performance mode of EFS file system.
+    Description: The performance mode of the EFS file system.
     Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
@@ -193,7 +193,7 @@ Parameters:
     Type: String
   BastionKeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Name of an existing EC2 KeyPair to enable SSH access to Bastion Host.
+    Description: Name of an existing EC2 KeyPair to enable SSH access to bastion host.
     ConstraintDescription: Must be the name of an existing EC2 Key Pair
   BastionAccessCidr:
     AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$"
@@ -201,11 +201,11 @@ Parameters:
     Description: CIDR block from which connections to the bastion host will be accepted.
     Type: String
   CertificateID:
-    Description: ARN for the Certificate to use for TLS
+    Description: The ARN of the Certificate to use for TLS. You must specify this value if UseHTTPS is set to HTTPS.
     Default: ''
     Type: String
   UseHTTPS:
-    Description: Enable end-to-end encryption of connections to annotation server
+    Description: The default value 'HTTPS' enables end-to-end encryption of connections to annotation server. Choose HTTP to enable unencrypted connections (not recommended for production use).
     AllowedValues:
      - HTTPS
      - HTTP
@@ -272,7 +272,6 @@ Resources:
         ECSHostInstanceType: !Ref ECSHostInstanceType
         ClusterSize: !Ref ClusterSize
         DesiredServiceCount: !Ref DesiredServiceCount
-        ContainerImageRegistry: !FindInMap [ Defaults, Clara, Uri ]
         QSS3BucketName: !Ref QSS3BucketName
         QSS3BucketRegion: !Ref QSS3BucketRegion
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
