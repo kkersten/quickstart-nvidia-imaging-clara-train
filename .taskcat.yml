@@ -1,5 +1,5 @@
 project:
-  name: quickstart-nvidia-clara
+  name: quickstart-nvidia-imaging-clara-train
   shorten_stack_name: true
   regions:
     - us-east-1
