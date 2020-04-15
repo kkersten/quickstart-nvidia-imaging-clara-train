@@ -253,6 +253,9 @@ Resources:
         PublicSubnet1ID: !GetAtt VPC.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPC.Outputs.PublicSubnet2ID
         VPCID: !GetAtt VPC.Outputs.VPCID
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+        QSS3KeyPrefix: !Ref QSS3KeyPrefix
 
   ClaraCluster:
     Type: AWS::CloudFormation::Stack
