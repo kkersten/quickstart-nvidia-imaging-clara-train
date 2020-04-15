@@ -41,12 +41,6 @@ Parameters:
     Default: HTTPS
     Type: String
 
-Conditions:
-  HTTPS:
-    !Equals [ !Ref UseHTTPS, HTTPS ] 
-  HTTP:
-    !Equals [ !Ref UseHTTPS, HTTP ]
-
 Mappings:
   Defaults:
     HTTPS:
