@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Amazon Elastic File System - a file system to persist and share data among container instances.
+Description: Amazon Elastic File System - a file system to persist and share data among container instances. (qs-1ql5cpbi6)
 
 Parameters:
   EnvironmentName:

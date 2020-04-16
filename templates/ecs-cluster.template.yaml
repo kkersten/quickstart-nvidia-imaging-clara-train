@@ -1,6 +1,6 @@
 Description: >
   This template deploys an ECS cluster to the provided VPC and subnets
-  using an Auto Scaling Group.
+  using an Auto Scaling Group. (qs-1ql5cpbif)
 
 Parameters:
   EnvironmentName:

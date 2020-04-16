@@ -1,6 +1,6 @@
 Description: >
   This template deploys the Clara Train SDK as an ECS service, accessible via a load balancer.
-  The Clara container mounts an existing EFS so models and data are persisted.
+  The Clara container mounts an existing EFS so models and data are persisted. (qs-1ql5cpbj9)
 
 Parameters:
   VPC:

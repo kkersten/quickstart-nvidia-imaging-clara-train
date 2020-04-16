@@ -1,5 +1,5 @@
 Description: >
-  This template deploys an Application Load Balancer that exposes the ECS services.
+  This template deploys an Application Load Balancer that exposes the ECS services. (qs-1ql5cpbin)
 
 Parameters:
   EnvironmentName:

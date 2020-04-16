@@ -10,7 +10,7 @@ Description: >
 
   Finally, it deploys the Clara Train SDK as a service on 
   a highly available ECS cluster, with an AutoScaling Group distributed across
-  two Availability Zones. 
+  two Availability Zones. (qs-1ql5cpbf9)
 
 Metadata:
 
@@ -255,7 +255,7 @@ Resources:
         VPCID: !GetAtt VPC.Outputs.VPCID
         QSS3BucketName: !Ref QSS3BucketName
         QSS3BucketRegion: !Ref QSS3BucketRegion
-        QSS3KeyPrefix: !Ref QSS3KeyPrefix
+        QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
 
   ClaraCluster:
     Type: AWS::CloudFormation::Stack

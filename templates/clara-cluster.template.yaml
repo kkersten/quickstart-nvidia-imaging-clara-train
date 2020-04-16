@@ -3,10 +3,7 @@ Description: >
   This template deploys a deploys a highly available ECS cluster using an AutoScaling Group, with 
   ECS hosts distributed across multiple Availability Zones. Then, it deploys the Clara Train SDK 
   as an ECS services from containers published in the NVIDIA repository or Amazon EC2 Container 
-  Registry (Amazon ECR)
-
-  Last Modified: 3rd January 2020
-  Author: Name <handle@amazon.com>
+  Registry (Amazon ECR). (qs-1ql5cpbht)
 
 Metadata:
 
