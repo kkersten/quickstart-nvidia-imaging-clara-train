@@ -5,7 +5,7 @@ This Quick Start deploys the Clara Train SDK as a highly available service, base
 
 ## Overview
 
-The [NVIDIA Clara Train SDK](https://docs.nvidia.com/clara/) includes AI-Assisted Annotation APIs and Annotation server that can be seamlessly integrated into any medical viewer making them AI capable. The training framework includes decentralized learning techniques like federated learning and transfer learning. The SDK also makes available model applications packaged as MMARS (Medical Model ARchive) available to users, providing an intuitive config based environment for data scientists and researchers to get kick-started with AI development.
+The [NVIDIA Clara Train SDK](https://docs.nvidia.com/clara/) provides an AI Assisted Annotation developer toolkit that can be integrated into existing Medical Viewers, accelerating the creation of AI-ready, annotated medical imaging datasets. Clara Train also provides a TensorFlow based training framework with domain-specific pre-trained models that accelerate AI development with techniques like Transfer Learning, Federated Learning, and AutoML. Models trained with Clara Train are packaged as Medical Model Archives (MMARs) providing a standardized format for training workflows and collaborations.
 
 This Quick Start offers two deployment options:
 
