@@ -5,9 +5,6 @@ Description: >
   as an ECS services from containers published in the NVIDIA repository or Amazon EC2 Container 
   Registry (Amazon ECR)
 
-  Last Modified: 3rd January 2020
-  Author: Name <handle@amazon.com>
-
 Metadata:
 
   AWS::CloudFormation::Interface:
