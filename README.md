@@ -12,7 +12,7 @@ This Quick Start offers two deployment options:
 
 You can also use the AWS CloudFormation templates as a starting point for your own implementation.
 
-![Quick Start architecture for NVIDIA Clara Train SDK on AWS](images/architecture-overview.png)
+![Quick Start architecture for NVIDIA Clara Train SDK on AWS](https://d0.awsstatic.com/partner-network/QuickStart/nvidia-clara-train-sdk-architecture-diagram.png)
 
 After the CloudFormation templates have been deployed, the [stack outputs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) contain a link to the load-balanced URL for the AI-Assisted Annotation APIs and Annotation Server, and the DNS name of the Amazon Elastic File System (Amazon EFS).
 
