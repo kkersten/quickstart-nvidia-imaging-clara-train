@@ -19,7 +19,7 @@ After the CloudFormation templates have been deployed, the [stack outputs](http:
 The command line Clara SDK tools can be used by SSH, via the bastion host, to the ECS host. Then, open a shell to the Clara container running on the ECS host.
 
 For architectural details, best practices, step-by-step instructions, and customization options, see the 
-[deployment guide](https://aws-quickstart.s3.amazonaws.com/quickstart-nvidia-clara-medical-imaging/doc/nvidia-clara-medical-imaging-on-the-aws-cloud.pdf).
+[deployment guide](https://fwd.aws/bzV9V).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
 If you'd like to submit code for this Quick Start, please review the [AWS Quick Start Contributor's Kit](https://aws-quickstart.github.io/). 
