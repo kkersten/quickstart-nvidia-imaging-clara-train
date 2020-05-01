@@ -216,8 +216,6 @@ Mappings:
   Defaults:
     Bastion:
       InstanceType: t2.medium
-    Clara:
-      Uri: nvcr.io/nvidia/clara-train-sdk:v2.0
 
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
