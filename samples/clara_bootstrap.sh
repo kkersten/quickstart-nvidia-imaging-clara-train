@@ -7,7 +7,7 @@ export AIAA=<insert DNS>/ # Include trailing slash
 export EFSDNS=<insert DNS>
 export DATABUCKET=<S3 containing data>
 export DATA=Task09_Spleen.tar 
-export MODEL=clara_ct_annotation_spleen_amp
+export MODEL=clara_ct_seg_spleen_amp
 export EFS='/mnt/efs/data/'
 export HTTPS=false
 
