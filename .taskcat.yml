@@ -24,7 +24,6 @@ tests:
       CertificateID: 'arn:aws:acm:us-west-2:377457852517:certificate/blahblah'
       UseHTTPS: HTTPS
     regions:
-      - us-east-1
       - us-west-2
       - ca-central-1
       - eu-west-1
