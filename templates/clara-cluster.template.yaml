@@ -179,7 +179,7 @@ Conditions:
 Mappings:
   Defaults:
     Clara:
-      Uri: nvcr.io/nvidia/clara-train-sdk:v3.0
+      Uri: nvcr.io/nvidia/clara-train-sdk:v3.1.01
 
 Resources:
 
