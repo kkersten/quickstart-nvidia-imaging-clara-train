@@ -63,6 +63,7 @@ Resources:
     Type: AWS::EFS::FileSystem
     Condition: Retain
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Encrypted: true
       KmsKeyId: !Ref 'AWS::NoValue'
@@ -84,6 +85,7 @@ Resources:
   ElasticFileSystemMountTarget0Retain:
     Condition: Retain
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref ElasticFileSystemRetain
@@ -93,6 +95,7 @@ Resources:
   ElasticFileSystemMountTarget0Delete:
     Condition: Delete
     DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref ElasticFileSystemDelete
@@ -102,6 +105,7 @@ Resources:
   ElasticFileSystemMountTarget1Retain:
     Condition: Retain
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref ElasticFileSystemRetain
