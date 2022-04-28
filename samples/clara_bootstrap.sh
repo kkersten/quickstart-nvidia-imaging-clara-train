@@ -3,13 +3,13 @@
 # Set environmental variables
 export CLOUD9SG=sg-<insert ID>
 export EFSSG=sg-<insert ID>
-export AIAA=<insert DNS>/ # Include trailing slash
+export AIAA=<insert DNS>/ # Include port if needed, and trailing slash
 export EFSDNS=<insert DNS>
 export DATABUCKET=<S3 containing data>
 export DATA=Task09_Spleen.tar 
-export MODEL=clara_ct_seg_spleen_amp
+export MODEL=clara_pt_spleen_ct_segmentation
 export EFS='/mnt/efs/data/'
-export HTTPS=false
+export HTTPS=true
 
 # Allow inboud EFS packets
 aws ec2 authorize-security-group-ingress --group-id $CLOUD9SG --protocol tcp --port 2049 --source-group $EFSSG 

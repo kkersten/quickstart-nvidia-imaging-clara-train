@@ -45,11 +45,11 @@ Mappings:
   Defaults:
     HTTPS:
       Port: 443
-      Command: "start_aas.sh --debug 1 --ssl true --ssl_cert_file /workspace/certs/clara.crt --ssl_pkey_file /workspace/certs/clara.key --workspace /workspace/AIAA"
+      Command: "start_aiaa.sh --debug --engine AIAA -p 443 --ssl_certfile /workspace/certs/clara.crt --ssl_keyfile /workspace/certs/clara.key  --workspace /workspace/AIAA"
       Protocol: HTTPS
     HTTP:
       Port: 80
-      Command: "start_aas.sh --debug 1 --workspace /workspace/AIAA"
+      Command: "start_aiaa.sh --debug --engine AIAA -p 80 --workspace /workspace/AIAA"
       Protocol: HTTP
 
 Resources:

@@ -22,14 +22,12 @@ if __name__ == "__main__":
 
    # Use Clara Train API to download example model   
    if os.getenv('HTTPS') == 'true':
-      aiaa_uri = 'http://' + os.getenv('AIAA')
+      aiaa_uri = 'https://' + os.getenv('AIAA')
    else:
       aiaa_uri = 'http://' + os.getenv('AIAA')
-   payload = {'path':'nvidia/med/' + os.getenv('MODEL'), 'version':'1'}
-   headers = {'accept':'application/json', 'Content-Type':'application/json'}
-   r = requests.put(aiaa_uri + 'admin/model/' + os.getenv('MODEL'), 
-                    data=json.dumps(payload), 
-                    headers=headers)
+   formdata = '{"path":"nvidia/med/' + os.getenv('MODEL') + '", "version":"1"}'
+   files = { 'ngc': (None, formdata) }
+   r = requests.put(aiaa_uri + 'admin/model/' + os.getenv('MODEL'), files=files )
 
    logging.info('Clara setup completed model download') 
 
