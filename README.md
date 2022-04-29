@@ -3,7 +3,7 @@
 
 This Quick Start deploys the Clara Train SDK as a highly available service, based on Amazon Elastic Container Service (Amazon ECS).
 
-The [NVIDIA Clara Train SDK](https://docs.nvidia.com/clara/) provides an AI Assisted Annotation developer toolkit that can be integrated into existing Medical Viewers, accelerating the creation of AI-ready, annotated medical imaging datasets. Clara Train also provides a TensorFlow based training framework with domain-specific pre-trained models that accelerate AI development with techniques like Transfer Learning, Federated Learning, and AutoML. Models trained with Clara Train are packaged as Medical Model Archives (MMARs) providing a standardized format for training workflows and collaborations.
+The [NVIDIA Clara Train SDK](https://docs.nvidia.com/clara/), powered by [MONAI](https://monai.io/), provides an AI Assisted Annotation developer toolkit that can be integrated into existing Medical Viewers, accelerating the creation of AI-ready, annotated medical imaging datasets. Clara Train also provides a PyTorch-based training framework with domain-specific pre-trained models that accelerate AI development with techniques like Transfer Learning, Federated Learning, and AutoML. Models trained with Clara Train are packaged as Medical Model Archives (MMARs) providing a standardized format for training workflows and collaborations.
 
 This Quick Start offers two deployment options:
 
